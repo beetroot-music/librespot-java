@@ -8,12 +8,11 @@ on:
   pull_request:
     branches: [ dev ]
 
-permissions:
-  packages: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - uses: actions/checkout@v2
         with:
@@ -23,16 +22,6 @@ jobs:
         with:
           java-version: '8'
           distribution: 'adopt'
-      # - name: Import GPG secrets
-      #   if: ${{ !startsWith(github.ref, 'refs/pull') }}
-      #   run: |
-      #     echo $GPG_SECRET_KEYS | base64 --decode > gpg-private-key.txt
-      #     gpg --pinentry-mode loopback --import --batch gpg-private-key.txt
-      #     echo $GPG_OWNERTRUST | base64 --decode > gpg-ownertrust.txt
-      #     gpg --pinentry-mode loopback --import-ownertrust --batch gpg-ownertrust.txt
-      #   env:
-      #     GPG_SECRET_KEYS: ${{ secrets.GPG_SECRET_KEYS }}
-      #     GPG_OWNERTRUST: ${{ secrets.GPG_OWNERTRUST }}
       - name: Cache local Maven repository
         uses: actions/cache@v2
         with:
@@ -47,12 +36,12 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: mvn deploy --settings .maven.xml -B -U -Pgithub
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Create release
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           name: ${{ github.ref }}
           draft: true
